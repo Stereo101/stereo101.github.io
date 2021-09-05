@@ -1,0 +1,216 @@
+<html>
+<body>
+<script type="module">
+    import * as THREE from './js/three.module.js';
+    import {OrbitControls} from './jsm/controls/OrbitControls.js';
+    let camera,scene,renderer;
+    let geometry,material,mesh;
+    let controls,orbit;
+
+    let last_update_time,time_per_step;
+    let gol_grid;
+
+    let scene_mesh_count,bounding;
+
+    init();
+
+    function init() {
+        //gol3d specific variables
+        scene_mesh_count = 0;
+        last_update_time = 0;
+        time_per_step = 100;
+        gol_grid = new Set();
+
+        //Shove some random starting cubes in
+        bounding = 5;
+        var spawn_chance = .2;
+        for (let x=-bounding; x <= bounding; x++) {
+            for (let y=-bounding; y <= bounding; y++) {
+                for (let z=-bounding; z <= bounding; z++) {
+                    if (Math.random() <= spawn_chance) {
+                        gol_grid.add(pack_tuple([x,y,z]));
+                    }
+                }
+            }
+        }
+
+        //Boilerplate from three.js Example
+        //https://github.com/mrdoob/three.js/
+        var screen_ratio = window.innerWidth / window.innerHeight;
+        camera = new THREE.PerspectiveCamera(70,screen_ratio,0.01,100);
+        /*
+        camera.position.x = 0;
+        camera.position.y = 0;
+        camera.position.z = 0;
+        */
+        
+        scene = new THREE.Scene();
+        
+        
+        const cube_size = 0.95;
+        geometry = new THREE.BoxGeometry(cube_size,cube_size,cube_size);
+        material = new THREE.MeshNormalMaterial();
+        
+        //mesh = new THREE.Mesh(geometry,material);
+        //scene.add(mesh);
+        update_scene_objects();
+
+        renderer = new THREE.WebGLRenderer({antialias:true});
+        renderer.setSize(window.innerWidth,window.innerHeight);
+        renderer.setAnimationLoop(animation);
+
+        //Drag and drop orbit controls from stackoverflow????
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.listenToKeyEvents( window ); // optional
+
+        //controls.addEventListener( 'change', render ); // call this only in static scenes (i.e., if there is no animation loop)
+
+        controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+        controls.dampingFactor = 0.05;
+
+        controls.screenSpacePanning = false;
+
+        controls.minDistance = 15;
+        controls.maxDistance = 50;
+
+        controls.maxPolarAngle = Math.PI / 2;
+
+        document.body.append(renderer.domElement);
+
+    }
+    
+    function animation(time) {
+        //Trigger an update to cube positions
+        if (time - last_update_time > time_per_step) {
+            gol_step();
+            update_scene_objects();
+            last_update_time = time;
+            console.log(gol_grid.size);
+        }
+
+        if(scene_mesh_count == 0) {
+            //Game is over, stop rendering
+            renderer.setAnimationLoop(null);
+        }
+
+        controls.update();
+        renderer.render(scene,camera);
+
+    }
+
+    //3d rules
+    //dead:
+    //  if 8-11 live neighbors -> become alive
+    //alive:
+    //  if 1 or less neighbors -> become dead
+    //  if  or more neighbors -> become dead
+    function gol_step() {
+        var sprout_lower_bound = 5;
+        var sprout_upper_bound = 5;
+        var crowded_upper_bound = 4;
+        var isolated_lower_bound = 1;
+        var goldilox = 5;
+
+        var live_neighbor_count_dict = {};
+        
+        //Count neighbors for each live cell
+        for (let tup of gol_grid) {
+            if (!live_neighbor_count_dict.hasOwnProperty(tup)) {
+                live_neighbor_count_dict[tup] = 0;
+            }
+            for (let adj of neighbors(unpack_tuple(tup))) {
+                let pack = pack_tuple(adj); 
+                if (live_neighbor_count_dict.hasOwnProperty(pack)) {
+                    live_neighbor_count_dict[pack] += 1;
+                } else {
+                    live_neighbor_count_dict[pack] = 1; 
+                }
+            }
+        }
+
+        var new_gol_grid = new Set();
+        var adj_count;
+        //Add live cells to the new grid according to game rules 
+        for (let tup in live_neighbor_count_dict) {
+            adj_count = live_neighbor_count_dict[tup];
+
+            if (gol_grid.has(tup)) {
+                //Alive rules
+                if (((adj_count < crowded_upper_bound) && (adj_count > isolated_lower_bound)) || adj_count == goldilox) {
+                    new_gol_grid.add(tup);
+                }
+            } else {
+                //Dead rules
+                if ((adj_count >= sprout_lower_bound) && (adj_count <= sprout_upper_bound)) {
+                    new_gol_grid.add(tup);
+                }
+            } 
+        }
+
+        //Commit changes
+        gol_grid = new_gol_grid;
+    }
+
+    function update_scene_objects() {
+        //Remove cubes if needed
+        while (scene_mesh_count > gol_grid.size) {
+            scene.remove(scene.children[0]);    
+            scene_mesh_count -= 1;
+        }
+
+        //Add cubes if needed
+        while (scene_mesh_count < gol_grid.size) {
+            var new_mesh = new THREE.Mesh(geometry,material);
+            scene.add(new_mesh);
+            scene_mesh_count += 1;
+        }
+
+        //#cubes in scene == #cubes in grid,
+        //set x,y,z of cubes in scene to values in game of life
+        var tup;
+        var gol_itr = gol_grid.values();
+        scene.traverse( function(node) {
+            if (node instanceof THREE.Mesh) {
+                tup = unpack_tuple(gol_itr.next().value);
+
+                node.position.x = tup[0];
+                node.position.y = tup[1];
+                node.position.z = tup[2];
+            }
+        });
+    }
+
+    function* neighbors(tup) {
+        var new_x,new_y,new_z;
+        for (let dx=-1; dx <= 1; dx++) {
+            for (let dy=-1; dy <= 1; dy++) {
+                for (let dz=-1; dz <= 1; dz++) {
+                    if ((dx == 0) && (dy == 0) && (dz == 0)) {continue;}
+                        new_x = tup[0] + dx;
+                        new_y = tup[1] + dy;
+                        new_z = tup[2] + dz;
+                        if (Math.max(new_x,new_y,new_z) > bounding) {continue;}
+                        if (Math.min(new_x,new_y,new_z) < -bounding) {continue;}
+                    yield [new_x,new_y,new_z];
+                }
+            }
+        }
+    }
+    
+    function pack_tuple(arr) {
+        return arr.join(",");
+    }
+
+    function unpack_tuple(s) {
+        var out = s.split(",");
+        for (var i = 0; i < out.length; i++) {
+             out[i] = Number(out[i]);
+        }
+        return out;
+    }
+
+
+
+</script>
+</body>
+</html>
