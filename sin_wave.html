@@ -1,0 +1,91 @@
+<html>
+
+<style>
+	body {
+		background-color: black;
+	}
+	
+	entry {
+		height: 10%;
+		width: 100%;
+		background-color: #5A5A5A;
+	}
+	
+	canvas {
+		background-color: #2A2A2A;
+		height: 90%;
+		width: 100%;
+	}
+	
+</style>
+<body id="bod">
+<canvas id="myCanvas"></canvas>
+</body
+<entry class="entry" id="ent">
+	<div>
+		<font color="white">Speed</font><br>
+		<input type="text" id="speed" value="4">
+	</div>
+	<div>
+		<font color="white">Density</font><br>
+		<input type="text" id="density" value="1">
+	</div>
+	<div>
+		<font color="white">Thickness</font><br>
+		<input type="text" id="thickness" value="5">
+	</div>
+	<div>
+		<font color="white">Precision</font><br>
+		<input type="text" id="precision" value="1000">
+	</div>
+	<div>
+		<font color="white">FrameRate</font><br>
+		<input type="text" id="framerate" value="144">
+	</div>
+</entry>
+
+<script>
+
+var canvas = document.getElementById("myCanvas");
+var context = canvas.getContext("2d");
+
+
+
+var setFR = function(fr,fun){
+	console.log(fr);
+	clearInterval(interval1);
+	interval1 = setInterval(fun,1000.0/(fr))
+};
+
+var draw = function() {
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight * .50;
+	
+	setFR(document.getElementById("framerate").value,draw);
+	var speed = parseFloat(document.getElementById("speed").value);
+	var density = parseFloat(document.getElementById("density").value);
+	context.lineWidth = parseFloat(document.getElementById("thickness").value);
+	var precision = parseFloat(document.getElementById("precision").value);
+
+	var time = (new Date()).getTime();
+	
+	context.beginPath();
+	context.clearRect(0,0,canvas.width,canvas.height);
+	context.moveTo(0,canvas.height/2);
+	context.lineTo(canvas.width,canvas.height/2);
+	context.moveTo(0,.9*(canvas.height/2)*Math.sin((speed*Math.PI*2*((time%10000/10000))))+(canvas.height/2));
+	for(var x = 0; x < 1; x+=1/precision) {
+		context.lineTo(x*canvas.width,.9*(canvas.height/2)*Math.sin((speed*Math.PI*2*((time%10000/10000)))+density*x*Math.PI)+(canvas.height/2));
+	}
+	context.strokeStyle = "#FFFF00"
+	context.stroke();
+};
+
+var interval1 = setInterval(draw,1000);
+setFR(60,draw);
+
+
+
+</script>
+</html>
+

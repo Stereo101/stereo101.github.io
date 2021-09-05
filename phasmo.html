@@ -1,0 +1,462 @@
+<!doctype html>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+
+<html>
+	<body>
+		<header>
+			<div style="margin-left: 10%; width: 50%" class="buttonRow">
+				<div style="height: 50%; margin-top: 5%" class="clueButton" id="prints">FINGERPRINTS (1)</div>
+				<div>
+					<div class="clueButton" id="orbs">ORBS (2)</div>
+					<div class="clueButton" id="emf">EMF5 (3)</div>
+				</div>
+				<div>
+					<div class="clueButton" id="box">SPIRITBOX (4)</div>
+					<div class="clueButton" id="temp">FREEZING (5)</div>
+				</div>
+				<div>
+					<div class="clueButton" id="book">WRITING (6)</div>
+					<div class="clueButton" id="dots">D.O.T.S (7)</div>
+				</div>
+			</div>
+		</header>
+		<div class="ghostList">
+			<div class="ghostBar" id="banshee">Banshee
+				<div class="content">
+					<p>Will exclusively hunt one player until they die.</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="demon">Demon
+				<div class="content">
+					<p>Attacks often. Successful questions on the Ouija board will not decrease sanity.</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="goryo">Goryo
+				<div class="content">
+					<p>Can only be seen in DOTS through a camera (except for on hunts).</p>
+				</div>
+			</div>
+
+			<div class="ghostBar" id="hantu">Hantu
+				<div class="content">
+					<p>Moves faster in cold areas (1.8m/s), and slower in warm areas (1 m/s). Keep it toasty by keeping the power and lights on.</p>
+				</div>
+			</div>
+
+			<div class="ghostBar" id="jinn">Jinn
+				<div class="content">
+					<p>Interacts with electronics (lights/cars/phones/radios/tvs) often. Moves very fast in hunts if fuse box in on. Low activity if players avoid ghost room.</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="mare">Mare
+				<div class="content">
+					<p>Will attack more often in dark and less often in light. Likes to turn off lights and the fuse box.</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="myling">Myling
+				<div class="content">
+					<p>Constantly makes noise, unless it is hunting.</p>
+				</div>
+			</div>
+
+			<div class="ghostBar" id="oni">Oni
+				<div class="content">
+					<p>Very active when people are nearby, and can throw objects at great speed.</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="phantom">Phantom
+				<div class="content">
+					<p>Can copy the appearance of a team member on hunts/manifestations (will never appear holding an item). Drops sanity rapidly when seen. Likes manifesting to stand still or walk for a moment. Photos cause the phantom to disappear (not stop a hunt).</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="poltergeist">Poltergeist
+				<div class="content">
+					<p>Interacts with objects often, especially doors, even very far from its room. Interactions not directly seen will cause decrease in sanity. Can interact with multiple objects at once (not focused on electronics like a jinn).</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="revenant">Revenant
+				<div class="content">
+					<p>Moves very fast during a hunt when it spots a player, and will switch to closer targets freely. Smudge sticks will disorient the Revenant and buy time to hide.</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="shade">Shade
+				<div class="content">
+					<p>Low activity when players are grouped. Try to use the Crucifix and Smudge Sticks to provide a safe window for a lone player to provoke activity and get clues.</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="spirit">Spirit
+				<div class="content">
+					<p>No unique powers, making it slightly harder to identify. Smudge Sticks prevent attacks for twice the duration of other ghosts.</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="wraith">Wraith
+				<div class="content">
+					<p>Touching salt immediately ends a hunt. Can hover over the ground, only occasionally taking steps. Can see and pass through doors and walls. Can teleport on top of players in the ghost room. Hiding is futile</p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="yokai">Yokai
+				<div class="content">
+					<p>Talking near a yokai increases its chance of attacking, leading to early hunts at high sanity level.<p>
+				</div>
+			</div>
+			
+			<div class="ghostBar" id="yurei">Yurei
+				<div class="content">
+					<p>Passively drains sanity slightly faster than baseline. Smudge Sticks will cause a Yurei to stay in its room.</p>
+				</div>
+			</div>
+			
+		</div>
+	</body>
+</html>
+
+
+<style>
+	body {
+		background-color: black;
+		color: black;
+		max-width: 1000px;
+		margin: auto;
+		overflow-y:scroll;
+		
+		-ms-overflow-style:none;
+		scrollbar-width: none;
+	}
+	
+	::-webkit-scrollbar {
+		display: none;
+		width: 0px;
+		height: 0;
+		background: transparent;
+	}
+	
+	header {
+		position: sticky;
+		top: 0;
+		margin: 5px;
+	}
+	
+	.buttonRow {
+		display: flex;
+		flex: 0 0 100%;
+		box-orient: horizontal;
+		background-color: black;
+		
+	}
+	
+	.clueButton {
+		background-color: gray;
+		font-family: Impact;
+		font-size: 24px;
+		text-align:center;
+		user-select: none;
+		cursor: pointer;
+		
+		margin: 4px;
+		padding: 15px;
+		border-radius:10px;
+		
+		flex-grow:1;
+	}
+	
+	.clueButton:hover {
+		color: white;
+	}
+	
+	.clueButton.highlight {
+		background-color: teal;
+	}
+	
+	.clueButton.on {
+		background-color: lightblue;
+	}
+	
+	.clueButton.off {
+		background-color: darkred;
+	}
+	
+	
+	
+	.ghostBar {
+		display: block;
+		color: white;
+		font-family: san-serif;
+		font-size: 20px;
+		text-align:center;
+		margin: 10px;
+		user-select: none;
+		
+		cursor: pointer;
+		padding: 18px;
+		border: none;
+		text-align: middle;
+		outline: none;
+	}
+	
+	.ghostBar > .content {
+		padding: 0 18px;
+		display: none;
+		overflow: hidden;
+		background-color: #111111;
+		
+	}
+	
+	.ghostBar > .content > p {
+		color:white;
+	}
+	
+	.active, .ghostBar:hover {
+		background-color: #555;
+	}
+	
+	
+	.ghostBar.highlight {
+		background-color: #301934;
+	}
+	
+	
+</style>
+
+<script>
+	const clueDict=	{"emf":new Set(["goryo","jinn","myling","oni","shade","wraith","spirit"]),
+				"temp":new Set(["demon","hantu","jinn","oni","revenant","shade","yurei"]),
+				"box":new Set(["mare","phantom","poltergeist","wraith","yokai","spirit"]),
+				"prints":new Set(["banshee","demon","goryo","hantu","jinn","myling","phantom","poltergeist"]),
+				"orbs":new Set(["banshee","hantu","mare","revenant","yokai","yurei"]),
+				"book":new Set(["demon","mare","myling","poltergeist","revenant","shade","spirit"]),
+				"dots":new Set(["banshee","goryo","oni","phantom","wraith","yokai","yurei"])};
+	
+	var selectedClues = new Set();
+	var possibleClues = new Set();
+	var ghostInfoGlobalCollapse = true;
+	
+	
+	
+	//init ghost dict
+	var ghostDict = {};
+	for (let clue in clueDict) {
+		for (let ghost of clueDict[clue]) {
+			if (!(ghost in ghostDict)) {
+				ghostDict[ghost] = new Set();	
+			}
+			ghostDict[ghost].add(clue);
+		}
+	}
+	
+	updateClues();
+	
+	//add listeners to buttons
+	var buttons = document.getElementsByClassName("clueButton");
+	var i;
+	for(i = 0; i < buttons.length; i++) {
+		buttons[i].addEventListener("click", function() {toggleClue(this.id)});
+		
+		//add ghost highlight on mouse over clue
+		buttons[i].addEventListener("mouseover", function() {
+			let clue = this.id;
+			if(possibleClues.has(clue)) {
+				for(let ghost of clueDict[clue]) {
+					var content = document.getElementById(ghost);
+					content.classList.add("highlight");
+				}
+			}
+		});
+		//remove ghost highlights on mouse off clue
+		buttons[i].addEventListener("mouseleave", function() {
+			let clue = this.id;
+			if(possibleClues.has(clue)) {
+				for(let ghost of clueDict[clue]) {
+					var content = document.getElementById(ghost);
+					content.classList.remove("highlight");
+				}
+			}
+		});
+	}
+	
+	
+	
+	var ghostBars = document.getElementsByClassName("ghostBar");
+	for(i = 0; i<ghostBars.length; i++) {
+		//add listener to ghost collapses
+		ghostBars[i].addEventListener("click",function() {
+			this.classList.toggle("active");
+			var content = this.firstElementChild;
+			if(content.style.display === "block") {
+				content.style.display = "none";
+			} else {
+				content.style.display = "block";
+			}
+		});
+		
+		//add clue highlight on mouse over ghost
+		ghostBars[i].addEventListener("mouseover",function() {
+			for(let clue of ghostDict[this.id]) {
+				var content = document.getElementById(clue);
+				content.classList.add("highlight");
+			}
+		});
+		
+		//remove clue highlight on mouse off ghost
+		ghostBars[i].addEventListener("mouseleave",function() {
+			for(let clue of ghostDict[this.id]) {
+				var content = document.getElementById(clue);
+				content.classList.remove("highlight");
+			}
+		});
+	}
+	
+	
+	//add keyboard controls
+	
+	window.onkeydown = function(k) {
+		if(k.keyCode == 32) {
+			if(ghostInfoGlobalCollapse) {
+				for(let ghost in ghostDict) {
+					var ghostInfo = document.getElementById(ghost);
+					ghostInfo.classList.add("active");
+					var content = ghostInfo.firstElementChild;
+					content.style.display = "block";
+				}
+			} else {
+				for(let ghost in ghostDict) {
+					var ghostInfo = document.getElementById(ghost);
+					ghostInfo.classList.remove("active");
+					var content = ghostInfo.firstElementChild;
+					content.style.display = "none";  
+				}
+			}
+			ghostInfoGlobalCollapse = !ghostInfoGlobalCollapse;
+			k.preventDefault();
+			return False;
+		} else {
+			return True;
+		}
+	}
+	document.addEventListener("keydown",handleKeyPress);
+	
+	function handleKeyPress(keyPress) {
+		k = keyPress.keyCode;
+		console.log(k);
+		if(k == 49) {
+			toggleClue("prints");
+		} else if (k == 50) {
+			toggleClue("orbs");
+		} else if (k == 51) {
+			toggleClue("emf");
+		} else if (k == 52) {
+			toggleClue("box");
+		} else if (k == 53) {
+			toggleClue("temp");
+		} else if (k == 54) {
+			toggleClue("book");
+		} else if (k == 55) {
+			toggleClue("dots");
+		}
+	}
+	
+	
+	function toggleClue(clue) {
+		if(possibleClues.has(clue)) {
+			if(selectedClues.has(clue)) {
+				selectedClues.delete(clue);
+			} else {
+				selectedClues.add(clue);
+			}
+			updateClues();
+		}
+	}
+	
+	function updatePossibleGhosts() {
+		let r = new Set();
+		for (let ghost in ghostDict) {
+			r.add(ghost);
+		}
+		
+		for (let clue of selectedClues) {
+			r = intersection(r,clueDict[clue]);
+		}
+		
+		//show or hide ghosts
+		for (let ghost in ghostDict) {
+			var obj = document.getElementById(ghost);
+			if(r.has(ghost)) {
+				obj.style.display = "block";
+				
+			} else {
+				obj.style.display = "none";
+				if(obj.firstElementChild.style.display === "block") {
+					obj.firstElementChild.style.display = "none";
+					obj.classList.toggle("active");
+				}
+			}
+		}
+		possibleGhosts = r;
+		return r;
+	}
+	
+	function updatePossibleClues() {
+		let r = new Set();
+		updatePossibleGhosts();
+		for(let ghost of possibleGhosts) {
+			for(let clue of ghostDict[ghost]) {
+				r.add(clue);
+			}
+		}
+		possibleClues = r;
+		return r;
+	}
+	
+	
+	function updateClues() {
+		updatePossibleClues();
+		//Do colors
+		for (let clue in clueDict) {
+			var obj = document.getElementById(clue);
+			if(selectedClues.has(clue)) {
+				obj.classList.add("on");
+			} else if(possibleClues.has(clue)) {
+				obj.classList.remove("off");
+				obj.classList.remove("on");
+			} else {
+				obj.classList.add("off");
+			}
+		}
+	}
+
+	function union(setA, setB) {
+		let _union = new Set(setA)
+		for (let elem of setB) {
+			_union.add(elem)
+		}
+		return _union
+	}
+
+	function intersection(setA, setB) {
+		let _intersection = new Set()
+		for (let elem of setB) {
+			if (setA.has(elem)) {
+				_intersection.add(elem)
+			}
+		}
+		return _intersection
+	}
+	
+	function difference(setA, setB) {
+		let _difference = new Set(setA)
+		for (let elem of setB) {
+			_difference.delete(elem)
+		}
+		return _difference
+	}
+</script>

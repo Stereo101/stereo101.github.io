@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HTML5 Canvas</title>
+<script type="text/javascript">
+    window.onload = function(){
+        var canvas = document.getElementById("myCanvas");
+        var context = canvas.getContext("2d");
+
+		context.canvas.width = window.innerWidth;
+		context.canvas.height = window.innerHeight;
+
+		context.fillStyle="#ffff00";
+		var width = Math.round(context.canvas.width/10);
+		var height = Math.round(context.canvas.height/10);
+		var popPercent = .5;
+		var grid = new Array(height);
+		var swapGrid = new Array(height);
+		var chunkArray = new Array(height);
+		var changeArray = new Array(height);
+		var heightMult = 10;
+		var widthMult = 10;
+		var FrameRate = 8;
+
+		class GridChunk {
+			constructor(x,y){
+				this.spot = [];
+				//Check bounds to see if fast operation is better
+				for(var i = y-1; i<= y+1; i++){
+					for(var k = x-1; k <= x+1; k++){
+						if(k>=0 && i>=0 && k<width && i<height && (k!=x || y!=i)) {
+							this.spot.push([i,k]) 
+						}
+					}
+				}
+			}
+
+			getCount() {
+				var count = 0;
+				for(var i = 0; i < this.spot.length; i++) {
+					count += grid[this.spot[i][0]][this.spot[i][1]];
+				}
+				return count;
+			}
+			
+			getSpots() {
+				return this.spot;
+			}
+
+		}
+
+		for(var i = 0; i < height; i++){
+			grid[i] = new Array(width);
+			swapGrid[i] = new Array(width);
+			chunkArray[i] = new Array(width);
+			recentChange = new Array(width);
+		}
+		
+		for(var i = 0; i < height; i++){
+			for(var k = 0; k < width; k++){
+				grid[i][k] = (Math.random() < popPercent) ? 0 : 1;
+				chunkArray[i][k] = new GridChunk(k,i);
+				recentChange = 1;
+			}
+		}
+		
+		var getLiveNeighborCount = function(x,y) {
+			return chunkArray[y][x].getCount();
+		}
+		
+		var resolveNextStep = function() {
+			var c;
+			for(var i = 0; i < height; i++){
+				for(var k = 0; k < width; k++){
+					c = getLiveNeighborCount(k,i);
+					if(grid[i][k] == 1) {
+						if(c>=2 && c<=3) {
+							//NO CHANGE
+							swapGrid[i][k] = 1;
+							
+						} else {
+							//CHANGE OCCURED
+							swapGrid[i][k] = 0;
+						}
+					} else {
+						if(c==3) {
+							//CHANGE OCCURED
+							swapGrid[i][k] = 1;
+						} else {
+							//NO CHANGE
+							swapGrid[i][k] = 0;
+						}
+					}	
+				}
+			}
+			
+			for(var i = 0; i < height; i++){
+				for(var k = 0; k < width; k++){
+					grid[i][k] = swapGrid[i][k];
+				}
+			}
+		};
+		
+	
+		
+		
+		
+		var drawScreen = function(){
+			//Clear screen
+			context.clearRect(0,0,canvas.width,canvas.height);
+			context.beginPath();
+			for(var i = 0; i < height; i++){
+				for(var k = 0; k < width; k++){
+					//context.fillText(grid[i][k],i*heightMult,k*widthMult);
+					if(grid[i][k]==1) {
+						context.fillRect(k*widthMult,i*heightMult,widthMult,heightMult);
+						context.rect(k*widthMult,i*heightMult,widthMult,heightMult);
+					} else {
+						
+					}
+				}
+			}
+			context.stroke();
+			context.closePath();
+		};
+		
+		var onFrame = function() {
+			resolveNextStep();
+			drawScreen();
+		};
+		
+		setInterval(onFrame,1000.0/FrameRate);
+    };
+	
+</script>
+</head>
+<body style="height:100%;margin:0;background-color: grey;">
+    <canvas id="myCanvas" style="width:100%; height:100%"></canvas>
+</body>
+</html>                                		
+
