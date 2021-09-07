@@ -25,6 +25,8 @@
 
     let camera,scene,renderer;
     let cube_geometry,cube_material;
+    let cube_geometry_padded;
+    let cube_wire_geometry,cube_wire_material;
     let controls,orbit,gui;
 
     let cube_group,
@@ -80,8 +82,12 @@
         scene.add(lighting_group);
         scene.add(bounding_group);
         
-        cube_geometry = new THREE.BoxGeometry(0.95,0.95,0.95);
-        //lcube_material = new THREE.MeshNormalMaterial();
+        cube_geometry = new THREE.BoxGeometry(0.97,0.97,0.97);
+        const cube_geometry_padded = new THREE.BoxGeometry(1,1,1);
+
+        cube_wire_geometry = new THREE.EdgesGeometry( cube_geometry_padded );
+        cube_wire_material = new THREE.LineBasicMaterial( { color: 0xd0d0d0, linewidth: 2 } );
+
         cube_material = new THREE.MeshPhysicalMaterial({
             metalness: 0,
             roughness: 1,
@@ -270,7 +276,9 @@
 
     function update_scene_objects() {
         var tup;
-        var new_mesh;
+        var cube_mesh;
+        var cube_wire_mesh;
+        var compound_cube;
         if (update_scene_full_redraw) {
             cubes_to_remove.clear();
             cube_group.children = [];
@@ -287,13 +295,18 @@
 
         //Add cubes if needed
         for(let tup_str of cubes_to_add) {
-            new_mesh = new THREE.Mesh(cube_geometry,cube_material);
-            new_mesh.name = tup_str;
+            cube_mesh = new THREE.Mesh(cube_geometry,cube_material);
+            cube_wire_mesh = new THREE.LineSegments( cube_wire_geometry, cube_wire_material );
+            compound_cube = new THREE.Object3D();
+            compound_cube.add(cube_mesh);
+            compound_cube.add(cube_wire_mesh);
+
+            compound_cube.name = tup_str;
             tup = unpack_tuple(tup_str);
-            new_mesh.position.x = tup[0];
-            new_mesh.position.y = tup[1];
-            new_mesh.position.z = tup[2];
-            cube_group.add(new_mesh);
+            compound_cube.position.x = tup[0];
+            compound_cube.position.y = tup[1];
+            compound_cube.position.z = tup[2];
+            cube_group.add(compound_cube);
         }
         cubes_to_add.clear();
     }
