@@ -1,4 +1,21 @@
-<html encoding="UTF-8">
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+</head>
+    
+<style>
+        html,
+        body,
+        canvas {
+          margin: 0;
+          width: 100%;
+          height: 100%;
+          display: block;
+        }
+</style>
+
 <body>
 <script type="module">
 
@@ -15,8 +32,9 @@
         bounding_group;
 
     let gol_grid;
-    let last_update_time,time_per_step;
-    let bounding_line_offset;
+    let cubes_to_add,cubes_to_remove;
+    let last_update_time;
+    let update_scene_full_redraw;
 
     let data,rules;
 
@@ -44,6 +62,10 @@
         last_update_time = 0;
 
         gol_grid = new Set();
+        update_scene_full_redraw = true;
+
+        cubes_to_add = new Set();
+        cubes_to_remove = new Set();
         
         var screen_ratio = window.innerWidth / window.innerHeight;
         camera = new THREE.PerspectiveCamera(70,screen_ratio,0.01,100);
@@ -82,8 +104,6 @@
         directional_light.intensity = 1;
         lighting_group.add(directional_light);
 
-        bounding_line_offset = 0;
-
         renderer = new THREE.WebGLRenderer({antialias:true});
         renderer.setSize(window.innerWidth,window.innerHeight);
         renderer.setAnimationLoop(animation);
@@ -112,7 +132,6 @@
         rules_folder.add(rules,"crowded_upper_bound",0,26,1).name("Crowded Upper");
         rules_folder.add(rules,"goldilox",0,26,1).name("Goldilox");
         rules_folder.add(rules,"default rules").name("Reset Rules");
-        rules_folder.open();
 
         const cube_folder = gui.addFolder("Cube Properties");
         cube_folder.add(cube_material, 'metalness', 0, 1.0, 0.01).name('Metalness')
@@ -137,18 +156,19 @@
         update_display(gui);
     }
 
-    function remove_bounding_lines() {
-        while (bounding_group.children.length > 0) {
-            bounding_group.remove(bounding_group.children[0]);
-        }
-    }
 
     function init_bounding_lines() {
         //update controls to reflect new bound
         controls.minDistance = data["bounding"]*2;
 
+        //Trigger a full redraw on cubes
+        update_scene_full_redraw = true;
+        update_scene_objects();
+
         if (bounding_group.children.length > 0) {
-            remove_bounding_lines();
+            while (bounding_group.children.length > 0) {
+                bounding_group.remove(bounding_group.children[0]);
+            }
         }
 
         var padded_bound = data["bounding"]*2 + 1;
@@ -177,16 +197,21 @@
 
     //Random starting configuration
     function init_gol_grid() {
+        gol_grid = new Set();
+        var pack;
         for (let x=-data["bounding"]; x <= data["bounding"]; x++) {
             for (let y=-data["bounding"]; y <= data["bounding"]; y++) {
                 for (let z=-data["bounding"]; z <= data["bounding"]; z++) {
                     if (Math.random() <= data["spawn_chance"]) {
-                        gol_grid.add(pack_tuple([x,y,z]));
+                        pack = pack_tuple([x,y,z]);
+                        gol_grid.add(pack);
+                        cubes_to_add.add(pack);
                     }
                 }
             }
         }
         data["simulation_on"] = true;
+        update_scene_full_redraw = true;
     }
 
     function animation(time) {
@@ -201,16 +226,6 @@
     }
 
     function gol_step() {
-        //var sprout_lower_bound = 5;
-        //var sprout_upper_bound = 5;
-        //var crowded_upper_bound = 4;
-        //var isolated_lower_bound = 1;
-
-        //Keep live cells alive ignoring other rules
-        //  used for more complicated rule-sets to get
-        //  more interesting behavior
-        var goldilox = 5;
-
         var live_neighbor_count_dict = {};
         
         //Count neighbors for each live cell
@@ -238,11 +253,14 @@
                 //Alive rules
                 if (((adj_count < rules["crowded_upper_bound"]) && (adj_count > rules["isolated_lower_bound"])) || adj_count == rules["goldilox"]) {
                     new_gol_grid.add(tup);
+                } else {
+                    cubes_to_remove.add(tup);
                 }
             } else {
                 //Dead rules
                 if ((adj_count >= rules["sprout_lower_bound"]) && (adj_count <= rules["sprout_upper_bound"])) {
                     new_gol_grid.add(tup);
+                    cubes_to_add.add(tup);
                 }
             } 
         }
@@ -251,32 +269,33 @@
     }
 
     function update_scene_objects() {
-        //Remove cubes if needed
-        while (cube_group.children.length > gol_grid.size) {
-            cube_group.remove(cube_group.children[0]);    
-            //scene_cube_count -= 1;
+        var tup;
+        var new_mesh;
+        if (update_scene_full_redraw) {
+            cubes_to_remove.clear();
+            cube_group.children = [];
+
+            cubes_to_add.clear();
+            for(let tup_str of gol_grid) {cubes_to_add.add(tup_str);}
+            update_scene_full_redraw = false;
         }
+
+        //Remove cubes if needed
+        cube_group.children = cube_group.children.filter(x => !(cubes_to_remove.has(x.name)));
+        cubes_to_remove.clear();
+
 
         //Add cubes if needed
-        while (cube_group.children.length < gol_grid.size) {
-            var new_mesh = new THREE.Mesh(cube_geometry,cube_material);
+        for(let tup_str of cubes_to_add) {
+            new_mesh = new THREE.Mesh(cube_geometry,cube_material);
+            new_mesh.name = tup_str;
+            tup = unpack_tuple(tup_str);
+            new_mesh.position.x = tup[0];
+            new_mesh.position.y = tup[1];
+            new_mesh.position.z = tup[2];
             cube_group.add(new_mesh);
-            //scene_cube_count += 1;
         }
-
-        //#cubes in scene == #cubes in grid,
-        //set x,y,z of cubes in scene to values in game of life
-        var tup;
-        var gol_itr = gol_grid.values();
-        scene.traverse( function(node) {
-            if (node instanceof THREE.Mesh) {
-                tup = unpack_tuple(gol_itr.next().value);
-
-                node.position.x = tup[0];
-                node.position.y = tup[1];
-                node.position.z = tup[2];
-            }
-        });
+        cubes_to_add.clear();
     }
 
     //Generator for cell neighbors respecting bounds
